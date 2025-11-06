@@ -16,7 +16,7 @@ interface FootballApi {
      * para formar: "https://api.football-data.org/v4/matches"
      *
      * Usamos 'suspend' porque es una operación de red y la llamaremos
-     * desde una Coroutine (en nuestro ViewModel).
+     * desde una Coroutine (en nuestro ViewModel)
      *
      * Devuelve el objeto 'MatchesResponse' que creamos en el paso anterior.
      */
