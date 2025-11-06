@@ -18,7 +18,7 @@ interface FootballApi {
      * Usamos 'suspend' porque es una operación de red y la llamaremos
      * desde una Coroutine (en nuestro ViewModel)
      *
-     * Devuelve el objeto 'MatchesResponse' que creamos en el paso anterior.
+     * Devuelve el objeto 'MatchesResponse' que creamos en el paso anterior
      */
     @GET("matches")
     suspend fun getMatches(): MatchesResponse
