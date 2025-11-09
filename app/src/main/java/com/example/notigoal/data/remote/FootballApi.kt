@@ -1,25 +1,54 @@
 package com.example.notigoal.data.remote
 
+// --- IMPORTS CORREGIDOS ---
+import com.example.notigoal.data.model.Match
 import com.example.notigoal.data.model.MatchesResponse
+import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Path
+import retrofit2.http.Query // <-- ¡IMPORT NUEVO Y NECESARIO!
 
 /**
  * Esta es la "Interfaz" de la API.
  * Aquí definimos QUÉ llamadas podemos hacer.
- * Es como el menú de un restaurante.
  */
 interface FootballApi {
 
     /**
-     * Define un endpoint para obtener los partidos.
-     * @GET("matches") se combinará con la URL Base (que definiremos en RetrofitInstance)
-     * para formar: "https://api.football-data.org/v4/matches"
-     *
-     * Usamos 'suspend' porque es una operación de red y la llamaremos
-     * desde una Coroutine (en nuestro ViewModel)
-     *
-     * Devuelve el objeto 'MatchesResponse' que creamos en el paso anterior
+     * Obtiene todos los partidos.
      */
-    @GET("matches")
-    suspend fun getMatches(): MatchesResponse
+    @GET("v4/matches")
+    suspend fun getMatches(
+        @Header("X-Auth-Token") authToken: String
+    ): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Champions League.
+     */
+    @GET("v4/competitions/CL/matches")
+    suspend fun getChampionsLeagueMatches(
+        @Header("X-Auth-Token") authToken: String
+    ): Response<MatchesResponse>
+
+    /**
+     * Obtiene los detalles de un único partido por su ID.
+     */
+    @GET("v4/matches/{id}")
+    suspend fun getMatchById(
+        @Header("X-Auth-Token") authToken: String,
+        @Path("id") matchId: Int
+    ): Response<Match>
+
+    // ================== ¡NUEVA FUNCIÓN AÑADIDA! ==================
+    /**
+     * Endpoint para obtener los próximos partidos de un equipo específico.
+     * GET https://api.football-data.org/v4/teams/{teamId}/matches?status=SCHEDULED
+     */
+    @GET("v4/teams/{teamId}/matches")
+    suspend fun getTeamMatches(
+        @Header("X-Auth-Token") authToken: String,
+        @Path("teamId") teamId: Int,
+        @Query("status") status: String = "SCHEDULED" // Pedimos solo los programados
+    ): Response<MatchesResponse>
 }

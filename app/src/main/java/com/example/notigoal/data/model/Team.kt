@@ -1,8 +1,9 @@
 package com.example.notigoal.data.model
 
-// Representa un equipo
+// Representa a un equipo de fútbol
 data class Team(
     val id: Int,
     val name: String,
-    val crest: String // "crest" es la URL de la imagen del logo
+    val shortName: String, // <-- EL CAMPO QUE FALTABA
+    val crest: String // URL del escudo del equipo
 )

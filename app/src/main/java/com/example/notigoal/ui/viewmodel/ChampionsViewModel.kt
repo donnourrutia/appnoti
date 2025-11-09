@@ -2,58 +2,43 @@ package com.example.notigoal.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.notigoal.data.model.Match
 import com.example.notigoal.data.remote.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-// ... (La sealed interface MatchesUiState se mantiene igual) ...
-sealed interface MatchesUiState {
-    data class Success(val matches: List<Match>) : MatchesUiState
-    object Error : MatchesUiState
-    object Loading : MatchesUiState
-}
+// NOTA: Reutilizamos la misma clase 'MatchesUiState' que ya teníamos.
+class ChampionsViewModel : ViewModel() {
 
-
-class MatchesViewModel : ViewModel() {
-
-    // --- ¡AÑADE TU API KEY AQUÍ! ---
-    // Por ahora, la ponemos aquí. Más adelante, aprenderemos a guardarla de forma más segura.
-    private val apiKey = "0fbe3a43da834080a6be071fc33521d6"
+    private val apiKey = "0fbe3a43da834080a6be071fc33521d6" // <-- TU API KEY
 
     private val _uiState = MutableStateFlow<MatchesUiState>(MatchesUiState.Loading)
     val uiState: StateFlow<MatchesUiState> = _uiState
 
     init {
-        fetchMatches()
+        fetchChampionsMatches()
     }
 
-    private fun fetchMatches() {
+    private fun fetchChampionsMatches() {
         viewModelScope.launch {
             _uiState.value = MatchesUiState.Loading
             try {
-                // --- CORRECCIÓN AQUÍ ---
-                // Ahora le pasamos la API Key a la función
-                val response = RetrofitInstance.api.getMatches(apiKey)
+                // Llamamos a la función de la Champions League.
+                val response = RetrofitInstance.api.getChampionsLeagueMatches(apiKey)
 
                 if (response.isSuccessful) {
-                    // Si la respuesta es exitosa, usamos el body
                     val matches = response.body()?.matches ?: emptyList()
                     _uiState.value = MatchesUiState.Success(matches)
                 } else {
-                    // Si hay un error de HTTP (ej: 401 Unauthorized, 404 Not Found)
                     _uiState.value = MatchesUiState.Error
                 }
-
             } catch (e: IOException) {
-                // Error de red (ej: sin conexión)
                 _uiState.value = MatchesUiState.Error
             } catch (e: retrofit2.HttpException) {
-                // Error en la respuesta HTTP que no fue manejado arriba
                 _uiState.value = MatchesUiState.Error
             }
         }
     }
 }
+
