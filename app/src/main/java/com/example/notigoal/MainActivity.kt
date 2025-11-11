@@ -43,11 +43,17 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.*
 import com.example.notigoal.data.model.*
+import com.example.notigoal.di.AppViewModelProvider
 import com.example.notigoal.ui.navigation.Screen
+import com.example.notigoal.ui.screens.EditProfileScreen // Importar EditProfileScreen
+import com.example.notigoal.ui.screens.TeamSelectionScreen
 import com.example.notigoal.ui.theme.LiveGreen
 import com.example.notigoal.ui.theme.NotiGoalTheme
 import com.example.notigoal.ui.viewmodel.*
 import com.example.notigoal.util.NotificationHelper
+import com.example.notigoal.data.db.FavoriteTeam
+import com.example.notigoal.data.preferences.UserProfile // Importar UserProfile
+
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -58,9 +64,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // Creamos el canal de notificaciones una vez al iniciar la app
         NotificationHelper.createNotificationChannel(this)
+
+        // Intentar obtener matchId del Intent (para navegación desde notificación)
+        // Lo obtenemos aquí y lo pasamos, pero la navegación real se hará en AppScreen con LaunchedEffect
+        val initialMatchId = intent.getIntExtra("matchId", -1)
+
         setContent {
             NotiGoalTheme {
-                AppScreen()
+                AppScreen(initialMatchId = initialMatchId)
             }
         }
     }
@@ -68,23 +79,39 @@ class MainActivity : ComponentActivity() {
 
 // region Estructura Principal
 @Composable
-fun AppScreen() {
+fun AppScreen(initialMatchId: Int = -1) { // Recibe el matchId inicial
     val navController = rememberNavController()
-    val items = listOf(Screen.Partidos, Screen.Champions, Screen.Perfil)
+    val items = listOf(Screen.Partidos, Screen.Champions, Screen.Perfil, Screen.TeamSelection, Screen.EditProfile) // Incluir todas las pantallas
+
+    // Manejar la navegación profunda si hay un matchId inicial
+    LaunchedEffect(key1 = initialMatchId) {
+        if (initialMatchId != -1) {
+            navController.navigate("partido_detalle/$initialMatchId") {
+                // Limpia el back stack hasta la ruta de partidos para evitar duplicados
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
-                items.forEach { screen ->
+                items.filter { it.icon != null }.forEach { screen -> // Filtrar pantallas sin icono
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.label) },
+                        icon = { Icon(screen.icon!!, contentDescription = screen.label) }, // Usar !! porque ya filtramos nulos
                         label = { Text(screen.label) },
                         selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                         onClick = {
                             navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -100,25 +127,38 @@ fun AppScreen() {
             }
         }
     ) { innerPadding ->
+        // startDestination ahora siempre es la ruta de Partidos
         NavHost(navController, startDestination = Screen.Partidos.route, Modifier.padding(innerPadding)) {
             composable(Screen.Partidos.route) {
-                val viewModel: MatchesViewModel = viewModel()
+                val viewModel: MatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
                 val uiState by viewModel.uiState.collectAsState()
                 MatchesScreen(uiState = uiState, navController = navController)
             }
             composable(Screen.Champions.route) {
-                val viewModel: ChampionsViewModel = viewModel()
+                val viewModel: ChampionsViewModel = viewModel(factory = AppViewModelProvider.Factory)
                 val uiState by viewModel.uiState.collectAsState()
                 ChampionsScreen(uiState = uiState, navController = navController)
             }
             composable(Screen.Perfil.route) {
-                ProfileScreen()
+                val viewModel: TeamMatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                val teamMatchesState by viewModel.uiState.collectAsState()
+                val favoriteTeams by viewModel.favoriteTeams.collectAsState()
+                val userProfile by viewModel.userProfile.collectAsState() // Recolectar perfil de usuario
+                ProfileScreen(navController = navController, favoriteTeams = favoriteTeams, userProfile = userProfile) // Pasar userProfile
             }
             composable(
                 route = "partido_detalle/{matchId}",
                 arguments = listOf(navArgument("matchId") { type = NavType.IntType })
             ) {
+                val viewModel: MatchDetailViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                val uiState by viewModel.uiState.collectAsState()
                 MatchDetailScreen(navController = navController)
+            }
+            composable(Screen.TeamSelection.route) {
+                TeamSelectionScreen(navController = navController)
+            }
+            composable(Screen.EditProfile.route) {
+                EditProfileScreen(navController = navController)
             }
         }
     }
@@ -147,7 +187,7 @@ fun ChampionsScreen(uiState: MatchesUiState, navController: NavHostController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatchDetailScreen(modifier: Modifier = Modifier, navController: NavHostController) {
-    val viewModel: MatchDetailViewModel = viewModel()
+    val viewModel: MatchDetailViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
@@ -179,15 +219,57 @@ fun MatchDetailScreen(modifier: Modifier = Modifier, navController: NavHostContr
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
                     ) {
-                        MatchItem(match = state.match)
+                        MatchItem(match = state.match) // Muestra el item original
                         Text(text = "Estadio: ${state.match.venue ?: "No disponible"}", style = MaterialTheme.typography.bodyLarge)
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // Botón para simular la notificación de gol
-                        Button(onClick = {
-                            NotificationHelper.showGoalNotification(context, state.match.homeTeam.name)
-                        }) {
-                            Text("Simular Gol y Notificar")
+                        // Marcador simulado
+                        Text(
+                            text = "Marcador Simulado: ${state.simulatedHomeScore} - ${state.simulatedAwayScore}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
+                            Button(onClick = {
+                                viewModel.simulateHomeGoal()
+                                NotificationHelper.showGoalNotification(
+                                    context = context,
+                                    homeTeamName = state.match.homeTeam.name,
+                                    awayTeamName = state.match.awayTeam.name,
+                                    score = "${state.simulatedHomeScore + 1} - ${state.simulatedAwayScore}", // Simular un gol sumando 1
+                                    minute = "${(0..90).random()}", // Minuto aleatorio para simulación
+                                    matchId = state.match.id
+                                )
+                            }) {
+                                Text("Gol de ${state.match.homeTeam.shortName}")
+                            }
+                            Button(onClick = {
+                                viewModel.simulateAwayGoal()
+                                NotificationHelper.showGoalNotification(
+                                    context = context,
+                                    homeTeamName = state.match.homeTeam.name,
+                                    awayTeamName = state.match.awayTeam.name,
+                                    score = "${state.simulatedHomeScore} - ${state.simulatedAwayScore + 1}", // Simular un gol sumando 1
+                                    minute = "${(0..90).random()}", // Minuto aleatorio para simulación
+                                    matchId = state.match.id
+                                )
+                            }) {
+                                Text("Gol de ${state.match.awayTeam.shortName}")
+                            }
                         }
+
+                        // Aquí podrías añadir un espacio para futuros eventos del partido
+                        Text(
+                            text = "Eventos del partido (próximamente)",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 24.dp)
+                        )
+                        // LazyColumn para eventos, si los tuvieras de la API
+                        // LazyColumn() {
+                        //    items(state.match.events) { event -> EventItem(event) }
+                        // }
                     }
                 }
                 is MatchDetailUiState.Error -> ErrorView()
@@ -197,8 +279,8 @@ fun MatchDetailScreen(modifier: Modifier = Modifier, navController: NavHostContr
 }
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
-    val teamViewModel: TeamMatchesViewModel = viewModel()
+fun ProfileScreen(modifier: Modifier = Modifier, navController: NavHostController, favoriteTeams: List<FavoriteTeam>, userProfile: UserProfile) { // userProfile añadido
+    val teamViewModel: TeamMatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val teamMatchesState by teamViewModel.uiState.collectAsState()
 
     LazyColumn(
@@ -207,10 +289,10 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        item { ProfileHeader() }
-        item { FollowingSection() }
-        item { TeamMatchesSection(uiState = teamMatchesState) } // Nueva sección
-        item { PermissionsSection() }
+        item { ProfileHeader(userProfile = userProfile) } // Pasar userProfile
+        item { FollowingSection(navController = navController, favoriteTeams = favoriteTeams) } // Pasar navController y favoriteTeams a FollowingSection
+        item { TeamMatchesSection(uiState = teamMatchesState) }
+        item { PermissionsSection(navController = navController) } // Pasar navController
     }
 }
 // endregion
@@ -410,7 +492,7 @@ fun SmallMatchItem(match: Match) {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PermissionsSection() {
+fun PermissionsSection(navController: NavHostController) { // Añadir navController aquí
     Column {
         Text(text = "Ajustes", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(8.dp))
@@ -421,6 +503,13 @@ fun PermissionsSection() {
             NotificationPermissionHandler()
             Divider(modifier = Modifier.padding(horizontal = 16.dp))
             CameraPermissionHandler()
+            // Botón para editar perfil
+            ListItem(
+                headlineContent = { Text("Editar Perfil") },
+                leadingContent = { Icon(Icons.Default.Edit, contentDescription = "Editar Perfil") },
+                trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Ir a editar perfil") },
+                modifier = Modifier.clickable { navController.navigate(Screen.EditProfile.route) }
+            )
         }
     }
 }
@@ -435,7 +524,7 @@ fun NotificationPermissionHandler() {
             icon = Icons.Default.Notifications,
             title = "Notificaciones",
             description = "Recibe alertas de goles y noticias",
-            rationale = "El permiso fue denegado. Púlsalo para volver a pedirlo."
+            rationale = "El permiso fue denestado. Púlsalo para volver a pedirlo."
         )
     }
 }
@@ -445,12 +534,12 @@ fun NotificationPermissionHandler() {
 fun CameraPermissionHandler() {
     val permissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
     PermissionRow(
-        permissionState = permissionState,
-        icon = Icons.Default.CameraAlt,
-        title = "Cámara",
-        description = "Accede a la cámara para personalizar tu perfil",
-        rationale = "El permiso fue denegado. Necesitamos acceso a la cámara."
-    )
+            permissionState = permissionState,
+            icon = Icons.Default.CameraAlt,
+            title = "Cámara",
+            description = "Accede a la cámara para personalizar tu perfil",
+            rationale = "El permiso fue denestado. Necesitamos acceso a la cámara."
+        )
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -487,7 +576,7 @@ fun PermissionRow(permissionState: com.google.accompanist.permissions.Permission
 }
 
 @Composable
-fun ProfileHeader() {
+fun ProfileHeader(userProfile: UserProfile) { // Aceptar UserProfile
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Surface(shape = CircleShape, modifier = Modifier.size(64.dp), color = MaterialTheme.colorScheme.surface) {
             Box(contentAlignment = Alignment.Center) {
@@ -496,31 +585,56 @@ fun ProfileHeader() {
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(text = "Donnovan", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = userProfile.name, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface) // Usar nombre del perfil
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "NotiGoal Fan Club", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+            Text(text = userProfile.biography, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)) // Usar biografía del perfil
         }
     }
 }
 
 @Composable
-fun FollowingSection() {
+fun FollowingSection(navController: NavHostController, favoriteTeams: List<FavoriteTeam>) { // navController y favoriteTeams añadidos
     Column {
         Text(text = "Siguiendo", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.height(12.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(5) { TeamToFollow() }
+        // Botón para ir a la pantalla de selección de equipos
+        Button(onClick = { navController.navigate(Screen.TeamSelection.route) },
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+        ) {
+            Text("Seleccionar equipos favoritos")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        if (favoriteTeams.isEmpty()) {
+            Text("Aún no sigues a ningún equipo. Selecciona tus favoritos.", style = MaterialTheme.typography.bodyMedium)
+        } else {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                items(favoriteTeams) { team ->
+                    FavoriteTeamLogo(team = team)
+                }
+            }
         }
     }
 }
 
 @Composable
-fun TeamToFollow() {
+fun FavoriteTeamLogo(team: FavoriteTeam) {
     Surface(shape = CircleShape, modifier = Modifier.size(56.dp), color = MaterialTheme.colorScheme.surface) {
-        Box(contentAlignment = Alignment.Center) { Text(text = "⚽️", fontSize = 24.sp) }
+        Box(contentAlignment = Alignment.Center) {
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(team.crestUrl)
+                    .decoderFactory(SvgDecoder.Factory())
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Logo ${team.name}",
+                modifier = Modifier.size(40.dp),
+                contentScale = ContentScale.Fit,
+                loading = { CircularProgressIndicator(modifier = Modifier.size(20.dp)) },
+                error = { Text(team.shortName, fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center) } // Mostrar iniciales si no carga el logo
+            )
+        }
     }
 }
-// endregion
 
 // region Funciones Helper y Previews
 private fun formatUtcDate(utcDate: String?): String {
@@ -541,7 +655,7 @@ private fun formatUtcDate(utcDate: String?): String {
 
 @Preview(showBackground = true, name = "AppScreen Preview")
 @Composable
-fun AppScreenPreview() { NotiGoalTheme { AppScreen() } }
+fun AppScreenPreview() { NotiGoalTheme { AppScreen() } } // Corregido para vista previa, NO necesita initialMatchId
 
 @Preview(showBackground = true, name = "Match Item Scheduled")
 @Composable
@@ -561,5 +675,5 @@ fun MatchItemPreview() {
 
 @Preview(showBackground = true, name = "Profile Screen Preview")
 @Composable
-fun ProfileScreenPreview() { NotiGoalTheme { ProfileScreen() } }
+fun ProfileScreenPreview() { NotiGoalTheme { AppScreen() } } // Corregido para vista previa, NO necesita initialMatchId
 // endregion

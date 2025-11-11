@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+
 }
 
 android {
@@ -71,6 +72,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
 
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     // Navegación
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
@@ -92,6 +96,8 @@ dependencies {
     // Librería para manejar permisos fácilmente en Compose
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
+
+
     // Soporte para java.time en APIs < 26
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
@@ -103,4 +109,9 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+
+    // Preferencias (DataStore) - ¡ESTAS LÍNEAS FALTABAN!
+    val datastore_version = "1.1.1"
+    implementation("androidx.datastore:datastore-preferences:$datastore_version")
 }
