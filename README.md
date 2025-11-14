@@ -1,5 +1,7 @@
 NotiGoal App ⚽
-
+Integrantes: 
+-Donnovan Urrutia
+-David Muñoz
 NotiGoal es una aplicación de resultados de fútbol para Android, creada con tecnologías 100% modernas de Kotlin y Jetpack Compose. La app permite a los usuarios ver resultados en vivo, próximos partidos y seguir a sus equipos favoritos.
 
 <img width="396" height="882" alt="image" src="https://github.com/user-attachments/assets/1c53b8b8-a864-4307-925e-f5841c415ec3" />
