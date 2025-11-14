@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
  */
 @Entity(tableName = "favorite_teams")
 data class FavoriteTeam(
-    @PrimaryKey val id: Int, // Usaremos el mismo ID del equipo de la API
+    @PrimaryKey val id: Int,
     val name: String,
     val shortName: String,
     val crestUrl: String

@@ -12,6 +12,6 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector?
     object Champions : Screen("champions", "Champions", Icons.Default.List)
     object Perfil : Screen("perfil", "Perfil", Icons.Default.Person)
     object TeamSelection : Screen("team_selection", "Seleccionar Equipo", Icons.Default.Settings)
-    // Nueva pantalla para editar el perfil
-    object EditProfile : Screen("edit_profile", "Editar Perfil", null) // No necesita icono en la bottom bar
+
+    object EditProfile : Screen("edit_profile", "Editar Perfil", null)
 }

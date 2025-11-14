@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import java.io.IOException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import android.util.Log // Para logs
+import android.util.Log
+import java.time.Instant
 
 class GoalCheckWorker(
     appContext: Context,
@@ -40,11 +41,11 @@ class GoalCheckWorker(
 
             val relevantMatches = mutableListOf<Match>()
 
-            // Recorrer cada equipo favorito y buscar sus partidos en vivo o próximos
+
             for (favTeam in favoriteTeams) {
                 try {
-                    // Buscamos partidos de hoy o en vivo para ese equipo
-                    val response = footballApi.getTeamMatches(teamId = favTeam.id, status = "LIVE,IN_PLAY,PAUSED")
+
+                    val response = footballApi.getTeamMatches(teamId = favTeam.id, status = "IN_PLAY")
                     if (response.isSuccessful) {
                         response.body()?.matches?.let { matches ->
                             relevantMatches.addAll(matches)
@@ -63,34 +64,22 @@ class GoalCheckWorker(
             if (relevantMatches.isNotEmpty()) {
                 Log.d("GoalCheckWorker", "Partidos relevantes encontrados: ${relevantMatches.size}")
                 relevantMatches.forEach { match ->
-                    // Lógica simplificada para detectar un "gol"
-                    // Aquí, solo verificamos si un partido está en vivo y su puntuación ha cambiado.
-                    // En una app real, necesitarías almacenar el último estado del partido
-                    // y compararlo con el estado actual.
+
                     if (match.status == "IN_PLAY" || match.status == "PAUSED") {
-                        // Solo para fines de demostración, simularemos una notificación de gol.
-                        // En un escenario real, necesitarías una forma de saber si un gol *nuevo* ha ocurrido.
-                        // Por ahora, si está en juego y tiene un score, podríamos notificarlo.
+                        val homeScore = match.score?.fullTime?.home ?: 0
+                        val awayScore = match.score?.fullTime?.away ?: 0
 
-                        val homeScore = match.score.fullTime?.home ?: 0
-                        val awayScore = match.score.fullTime?.away ?: 0
-
-                        // Para esta primera iteración, vamos a simplificar.
-                        // Si el partido está en juego y tiene un marcador, podríamos considerar notificarlo,
-                        // aunque esto no es una detección real de *nuevos* goles.
-                        // Necesitaríamos persistir el estado anterior de los marcadores.
-
-                        // Implementación temporal: si es un equipo favorito y tiene goles, notificar
                         val scoringTeamName: String?
                         val currentScore: String = "$homeScore - $awayScore"
                         val minute = if (match.utcDate != null) {
                             try {
-                                val zonedDateTime = ZonedDateTime.parse(match.utcDate, DateTimeFormatter.ISO_INSTANT)
+                                val zonedDateTime = Instant.parse(match.utcDate).atZone(ZonedDateTime.now().zone)
                                 val now = ZonedDateTime.now(zonedDateTime.zone)
                                 val duration = java.time.Duration.between(zonedDateTime, now)
                                 val minutes = duration.toMinutes().toInt()
-                                if (minutes > 0) minutes.toString() else null
+                                if (minutes in 1..120) minutes.toString() + "'" else null
                             } catch (e: Exception) {
+                                Log.e("GoalCheckWorker", "Error al parsear minuto: ${e.message}")
                                 null
                             }
                         } else null
@@ -102,7 +91,8 @@ class GoalCheckWorker(
                                 scoringTeamName,
                                 match.awayTeam.name,
                                 currentScore,
-                                minute
+                                minute,
+                                match.id //
                             )
                             Log.d("GoalCheckWorker", "Notificación simulada para gol de ${scoringTeamName}")
                         } else if (favoriteTeams.any { it.id == match.awayTeam.id } && awayScore > 0) {
@@ -112,7 +102,8 @@ class GoalCheckWorker(
                                 match.homeTeam.name,
                                 scoringTeamName,
                                 currentScore,
-                                minute
+                                minute,
+                                match.id //
                             )
                             Log.d("GoalCheckWorker", "Notificación simulada para gol de ${scoringTeamName}")
                         }

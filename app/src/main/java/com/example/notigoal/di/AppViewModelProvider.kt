@@ -20,39 +20,34 @@ import com.example.notigoal.ui.viewmodel.EditProfileViewModel // Nueva importaci
 object AppViewModelProvider {
     val Factory = viewModelFactory {
 
-        // Inicializador para MatchesViewModel
         initializer {
             MatchesViewModel(
                 favoriteTeamsRepository = notiGoalApplication().container.favoriteTeamsRepository
             )
         }
-        // Inicializador para ChampionsViewModel
         initializer {
             ChampionsViewModel(
                 favoriteTeamsRepository = notiGoalApplication().container.favoriteTeamsRepository
             )
         }
-        // Inicializador para TeamMatchesViewModel
         initializer {
             TeamMatchesViewModel(
                 favoriteTeamsRepository = notiGoalApplication().container.favoriteTeamsRepository,
-                userPreferencesRepository = notiGoalApplication().container.userPreferencesRepository // Añadido
+                userPreferencesRepository = notiGoalApplication().container.userPreferencesRepository
             )
         }
-        // Inicializador para MatchDetailViewModel (que también necesita el SavedStateHandle)
+
         initializer {
             MatchDetailViewModel(
                 savedStateHandle = this.createSavedStateHandle(),
                 favoriteTeamsRepository = notiGoalApplication().container.favoriteTeamsRepository
             )
         }
-        // Nuevo inicializador para TeamSelectionViewModel
         initializer {
             TeamSelectionViewModel(
                 favoriteTeamsRepository = notiGoalApplication().container.favoriteTeamsRepository
             )
         }
-        // Nuevo inicializador para EditProfileViewModel
         initializer {
             EditProfileViewModel(
                 userPreferencesRepository = notiGoalApplication().container.userPreferencesRepository

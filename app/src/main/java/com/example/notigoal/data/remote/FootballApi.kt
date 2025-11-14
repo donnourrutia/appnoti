@@ -1,5 +1,4 @@
 package com.example.notigoal.data.remote
-
 import com.example.notigoal.data.model.Match
 import com.example.notigoal.data.model.MatchesResponse
 import com.example.notigoal.data.model.TeamsResponse
@@ -7,11 +6,9 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-
 /**
  * Esta es la "Interfaz" de la API.
  * Aquí definimos QUÉ llamadas podemos hacer.
- * El API Key ya no se pasa aquí, se gestiona con un Interceptor.
  */
 interface FootballApi {
 
@@ -26,6 +23,48 @@ interface FootballApi {
      */
     @GET("v4/competitions/CL/matches")
     suspend fun getChampionsLeagueMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Copa del Mundo.
+     */
+    @GET("v4/competitions/WC/matches")
+    suspend fun getWorldCupMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de La Liga (España).
+     */
+    @GET("v4/competitions/PD/matches")
+    suspend fun getLaLigaMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Premier League (Inglaterra).
+     */
+    @GET("v4/competitions/PL/matches")
+    suspend fun getPremierLeagueMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Serie A (Italia).
+     */
+    @GET("v4/competitions/SA/matches")
+    suspend fun getSerieAMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Bundesliga (Alemania).
+     */
+    @GET("v4/competitions/BL1/matches")
+    suspend fun getBundesligaMatches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Ligue 1 (Francia).
+     */
+    @GET("v4/competitions/FL1/matches")
+    suspend fun getLigue1Matches(): Response<MatchesResponse>
+
+    /**
+     * Obtiene los partidos de la Primeira Liga (Portugal).
+     */
+    @GET("v4/competitions/PPL/matches")
+    suspend fun getPrimeiraLigaMatches(): Response<MatchesResponse>
 
     /**
      * Obtiene los detalles de un único partido por su ID.
@@ -44,14 +83,12 @@ interface FootballApi {
 
     /**
      * Obtiene una lista de todos los equipos disponibles.
-     * Nota: Con el plan gratuito, esto puede estar limitado a ciertas ligas.
      */
     @GET("v4/teams")
     suspend fun getTeams(): Response<TeamsResponse>
 
     /**
      * Obtiene una lista de equipos para una competición específica.
-     * @param competitionId El código de la competición (ej. "PD" para La Liga, "PL" para Premier League).
      */
     @GET("v4/competitions/{competitionId}/teams")
     suspend fun getTeamsInCompetition(

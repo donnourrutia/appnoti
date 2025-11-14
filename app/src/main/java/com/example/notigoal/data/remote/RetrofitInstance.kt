@@ -8,11 +8,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    // --- ¡LA API KEY AHORA VIVE AQUÍ! ---
-    // Está centralizada y segura.
-    private const val API_KEY = "0fbe3a43da834080a6be071fc33521d6"
+    // --- API KEY (ACTUALIZADA) ---
+    private const val API_KEY = "37cdd5b0d4a94d20a4d444c047fafdd7"
 
-    // --- URL Base de la API ---
     private const val BASE_URL = "https://api.football-data.org/"
 
     // Creamos un interceptor para añadir la API Key a todas las llamadas
@@ -22,28 +20,21 @@ object RetrofitInstance {
             .build()
         chain.proceed(request)
     }
-
-    // Creamos un interceptor para ver los logs de las llamadas (muy útil para depurar)
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
-
-    // Creamos el cliente de OkHttp y le añadimos los interceptors
     private val client = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
         .addInterceptor(loggingInterceptor)
         .build()
-
-    // Creamos la instancia de Retrofit
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(client) // Usamos el cliente personalizado
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    // Creamos una instancia de nuestra interfaz de API
     val api: FootballApi by lazy {
         retrofit.create(FootballApi::class.java)
     }

@@ -4,6 +4,6 @@ package com.example.notigoal.data.model
 data class Team(
     val id: Int,
     val name: String,
-    val shortName: String, // <-- EL CAMPO QUE FALTABA
-    val crest: String // URL del escudo del equipo
+    val shortName: String,
+    val crest: String
 )

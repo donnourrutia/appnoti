@@ -8,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.* // Importa Material3 para Scaffold, TopAppBar, Icon, etc.
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -87,7 +87,7 @@ fun TeamItem(team: Team, isFavorite: Boolean, onToggleFavorite: (Boolean) -> Uni
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onToggleFavorite(isFavorite) } // Toggle al hacer clic en cualquier parte del Row
+            .clickable { onToggleFavorite(isFavorite) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -116,5 +116,5 @@ fun TeamItem(team: Team, isFavorite: Boolean, onToggleFavorite: (Boolean) -> Uni
             )
         }
     }
-    Divider(modifier = Modifier.padding(horizontal = 16.dp)) // Separador para cada equipo
+    Divider(modifier = Modifier.padding(horizontal = 16.dp))
 }

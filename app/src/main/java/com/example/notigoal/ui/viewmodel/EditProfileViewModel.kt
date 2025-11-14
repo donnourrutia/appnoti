@@ -11,14 +11,14 @@ import android.util.Patterns // Para validar el formato del email
 import com.example.notigoal.data.preferences.UserPreferencesRepository // Nueva importación
 
 class EditProfileViewModel(
-    private val userPreferencesRepository: UserPreferencesRepository // Inyectamos el repositorio
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState.asStateFlow()
 
     init {
-        // Cargar los datos del perfil al inicializar el ViewModel
+
         viewModelScope.launch {
             userPreferencesRepository.userProfileFlow.collect { userProfile ->
                 _uiState.update { currentState ->
@@ -32,7 +32,7 @@ class EditProfileViewModel(
         }
     }
 
-    // Función para actualizar el nombre
+    // Funcion para actualizar el nombre
     fun onNameChange(newName: String) {
         _uiState.update { currentState ->
             val isNameError = newName.isBlank()
@@ -40,7 +40,7 @@ class EditProfileViewModel(
         }
     }
 
-    // Función para actualizar el email
+    // Funcion para actualizar el email
     fun onEmailChange(newEmail: String) {
         _uiState.update { currentState ->
             val isEmailError = !Patterns.EMAIL_ADDRESS.matcher(newEmail).matches() && newEmail.isNotBlank()
@@ -48,14 +48,14 @@ class EditProfileViewModel(
         }
     }
 
-    // Función para actualizar la biografía
+    // Funcion para actualizar la biografia
     fun onBiographyChange(newBiography: String) {
         _uiState.update { currentState ->
             currentState.copy(biography = newBiography)
         }
     }
 
-    // Función para guardar el perfil
+    // Funcion para guardar el perfil
     fun saveProfile() {
         viewModelScope.launch {
             val currentProfile = _uiState.value
@@ -72,27 +72,27 @@ class EditProfileViewModel(
         }
     }
 
-    // Función para indicar que el mensaje del usuario ya se mostró
+    // Funcion para indicar que el mensaje del usuario ya se mostro
     fun userMessageShown() {
         _uiState.update { it.copy(userMessage = null) }
     }
 
-    // Función privada para validar el formulario completo
+    // Funcion privada para validar el formulario completo
     private fun EditProfileUiState.validateForm(): EditProfileUiState {
         val isNameValid = !this.isNameError && this.name.isNotBlank()
         val isEmailValid = !this.isEmailError && this.email.isNotBlank()
-        // La biografía es opcional, no afecta la validez del formulario si está vacía
+        // La biografia es opcional, no afecta la validez del formulario si esta vacia
         return this.copy(isFormValid = isNameValid && isEmailValid)
     }
 
-    // Estado de la UI para el formulario de edición de perfil
+    // Estado de la UI para el formulario de edicion de perfil
     data class EditProfileUiState(
-        val name: String = "", // Ahora se inicializarán desde el repositorio
-        val email: String = "", // Ahora se inicializarán desde el repositorio
-        val biography: String = "", // Ahora se inicializarán desde el repositorio
+        val name: String = "", // Ahora se inicializaran desde el repositorio
+        val email: String = "", // Ahora se inicializaran desde el repositorio
+        val biography: String = "", // Ahora se inicializaran desde el repositorio
         val isNameError: Boolean = false,
         val isEmailError: Boolean = false,
-        val isFormValid: Boolean = false, // Asumimos inválido hasta cargar y validar
+        val isFormValid: Boolean = false,
         val userMessage: String? = null
     )
 }

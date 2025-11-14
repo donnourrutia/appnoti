@@ -22,18 +22,17 @@ import com.example.notigoal.ui.viewmodel.EditProfileViewModel
 @Composable
 fun EditProfileScreen(
     navController: NavHostController,
-    viewModel: EditProfileViewModel = viewModel(factory = AppViewModelProvider.Factory) // <--- AHORA USA LA FÁBRICA
+    viewModel: EditProfileViewModel = viewModel(factory = AppViewModelProvider.Factory) //
 ) {
-    // Recolecta el estado (UiState) del ViewModel
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
 
-    // Observador para mostrar el Snackbar cuando el ViewModel lo pida
+
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            viewModel.userMessageShown() // Avisa al ViewModel que el mensaje se mostró
+            viewModel.userMessageShown()
         }
     }
     Scaffold(
@@ -42,7 +41,7 @@ fun EditProfileScreen(
             TopAppBar(
                 title = { Text("Editar Perfil") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) { // Botón para volver atrás
+                    IconButton(onClick = { navController.popBackStack() }) { // Boton para volver atras
                         Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
                     }
                 }
@@ -53,12 +52,12 @@ fun EditProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp) // Padding del contenido
-                .verticalScroll(scrollState), // Para que sea 'scrollable' si el teclado aparece
+                .padding(16.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // CAMPO DE TEXTO PARA EL NOMBRE
+
             ValidatedTextField(
                 value = uiState.name,
                 onValueChange = viewModel::onNameChange,
@@ -66,7 +65,7 @@ fun EditProfileScreen(
                 isError = uiState.isNameError,
                 errorMessage = "El nombre no puede estar vacío"
             )
-            // CAMPO DE TEXTO PARA EL EMAIL
+
             ValidatedTextField(
                 value = uiState.email,
                 onValueChange = viewModel::onEmailChange,
@@ -74,7 +73,7 @@ fun EditProfileScreen(
                 isError = uiState.isEmailError,
                 errorMessage = "El formato del correo no es válido"
             )
-            // CAMPO DE TEXTO PARA LA BIOGRAFÍA
+
             OutlinedTextField(
                 value = uiState.biography,
                 onValueChange = viewModel::onBiographyChange,
@@ -83,10 +82,9 @@ fun EditProfileScreen(
                 maxLines = 5
             )
             Spacer(modifier = Modifier.height(16.dp))
-            // BOTÓN DE GUARDAR
+
             Button(
                 onClick = viewModel::saveProfile,
-                // Validación: El botón se desactiva si el formulario no es válido
                 enabled = uiState.isFormValid,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
@@ -113,7 +111,7 @@ private fun ValidatedTextField(
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
-        isError = isError, // Muestra el mensaje de error si 'isError' es true
+        isError = isError,
         supportingText = {
             if (isError) {
                 Text(errorMessage, color = MaterialTheme.colorScheme.error)

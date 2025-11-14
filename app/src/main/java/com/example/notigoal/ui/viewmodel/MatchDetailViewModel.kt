@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-// Estado para la pantalla de detalle
+
 sealed interface MatchDetailUiState {
     data class Success(val match: Match, val isFavorite: Boolean, val simulatedHomeScore: Int, val simulatedAwayScore: Int) : MatchDetailUiState
     object Error : MatchDetailUiState
@@ -23,18 +23,16 @@ sealed interface MatchDetailUiState {
 }
 
 class MatchDetailViewModel(
-    savedStateHandle: SavedStateHandle, // Se usa para recibir argumentos de navegación
+    savedStateHandle: SavedStateHandle,
     private val favoriteTeamsRepository: FavoriteTeamsRepository
 ) : ViewModel() {
 
     private val matchId: Int = checkNotNull(savedStateHandle["matchId"])
 
-    // DECLARAR ESTAS VARIABLES ANTES DE uiState
     private val _simulatedHomeScore = MutableStateFlow(0)
     private val _simulatedAwayScore = MutableStateFlow(0)
 
     private val _uiState = MutableStateFlow<MatchDetailUiState>(MatchDetailUiState.Loading)
-    // No exponemos _uiState directamente, sino un StateFlow combinado.
     val uiState: StateFlow<MatchDetailUiState> = combine(
         _uiState,
         favoriteTeamsRepository.getAllFavoriteTeams(),
@@ -67,17 +65,16 @@ class MatchDetailViewModel(
 
     private fun fetchMatchDetails() {
         viewModelScope.launch {
-            // Primero, establecer el estado de carga
             _uiState.value = MatchDetailUiState.Loading
             try {
                 val response = RetrofitInstance.api.getMatchById(matchId)
                 if (response.isSuccessful) {
                     response.body()?.let { match ->
-                        // Inicializar los scores simulados con los scores reales si existen, o a 0
-                        _simulatedHomeScore.value = match.score.fullTime?.home ?: 0
-                        _simulatedAwayScore.value = match.score.fullTime?.away ?: 0
+                        // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+                        // Añadimos '?.' después de 'match.score'
+                        _simulatedHomeScore.value = match.score?.fullTime?.home ?: 0
+                        _simulatedAwayScore.value = match.score?.fullTime?.away ?: 0
 
-                        // Establecer el estado de éxito con los valores iniciales. El 'combine' se encargará del resto.
                         _uiState.value = MatchDetailUiState.Success(match, false, _simulatedHomeScore.value, _simulatedAwayScore.value)
                     } ?: run {
                         _uiState.value = MatchDetailUiState.Error

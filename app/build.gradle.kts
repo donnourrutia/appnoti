@@ -52,11 +52,13 @@ android {
     }
 }
 
+
 dependencies {
     // Definición de versiones
     val room_version = "2.6.1"
     val lifecycle_version = "2.8.0"
 
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     // Core & UI
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")

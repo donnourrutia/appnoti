@@ -17,8 +17,6 @@ data class UserProfile(
 )
 
 class UserPreferencesRepository(private val context: Context) {
-
-    // Flow para observar los datos del perfil del usuario
     val userProfileFlow: Flow<UserProfile> = context.dataStore.data
         .map { preferences ->
             UserProfile(
