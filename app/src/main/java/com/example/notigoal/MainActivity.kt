@@ -1,14 +1,14 @@
 package com.example.notigoal
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,6 +54,7 @@ import com.example.notigoal.di.AppViewModelProvider
 import com.example.notigoal.ui.navigation.Screen
 import com.example.notigoal.ui.screens.EditProfileScreen
 import com.example.notigoal.ui.screens.TeamSelectionScreen
+import com.example.notigoal.ui.screens.FeedbackScreen
 import com.example.notigoal.ui.theme.LiveGreen
 import com.example.notigoal.ui.theme.NotiGoalTheme
 import com.example.notigoal.ui.viewmodel.*
@@ -86,7 +87,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppScreen(initialMatchId: Int = -1) {
     val navController = rememberNavController()
+    // Añadir Feedback a la lista de pantallas (aunque no está en el nav bar)
     val items = listOf(Screen.Partidos, Screen.Champions, Screen.Perfil, Screen.TeamSelection, Screen.EditProfile)
+
+    val sharedMatchesViewModel: MatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
     LaunchedEffect(key1 = initialMatchId) {
         if (initialMatchId != -1) {
@@ -132,11 +136,12 @@ fun AppScreen(initialMatchId: Int = -1) {
     ) { innerPadding ->
         NavHost(navController, startDestination = Screen.Partidos.route, Modifier.padding(innerPadding)) {
             composable(Screen.Partidos.route) {
-                val viewModel: MatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
-                val uiState by viewModel.uiState.collectAsState()
+                // Usamos el ViewModel compartido
+                val uiState by sharedMatchesViewModel.uiState.collectAsState()
                 MatchesScreenWithTabs(uiState = uiState, title = "Partidos", navController = navController)
             }
             composable(Screen.Champions.route) {
+                // Champions tiene su propio VM porque es específico
                 val viewModel: ChampionsViewModel = viewModel(factory = AppViewModelProvider.Factory)
                 val uiState by viewModel.uiState.collectAsState()
                 MatchesScreenWithTabs(uiState = uiState, title = "Champions League", navController = navController)
@@ -146,8 +151,8 @@ fun AppScreen(initialMatchId: Int = -1) {
                 val favoriteTeams by profileViewModel.favoriteTeams.collectAsState()
                 val userProfile by profileViewModel.userProfile.collectAsState()
 
-                val matchesViewModel: MatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
-                val mainMatchesUiState by matchesViewModel.uiState.collectAsState()
+                // Usamos el ViewModel compartido
+                val mainMatchesUiState by sharedMatchesViewModel.uiState.collectAsState()
 
                 ProfileScreen(
                     navController = navController,
@@ -169,6 +174,9 @@ fun AppScreen(initialMatchId: Int = -1) {
             }
             composable(Screen.EditProfile.route) {
                 EditProfileScreen(navController = navController)
+            }
+            composable("feedback") {
+                FeedbackScreen(navController = navController)
             }
         }
     }
@@ -220,24 +228,6 @@ fun MatchesScreenWithTabs(uiState: MatchesUiState, title: String, navController:
             }
             is MatchesUiState.Error -> ErrorView()
         }
-    }
-}
-
-@Composable
-fun MatchesScreen(uiState: MatchesUiState, navController: NavHostController) {
-    when (uiState) {
-        is MatchesUiState.Loading -> LoadingView()
-        is MatchesUiState.Success -> MatchList(matches = uiState.matches, title = "Partidos de Hoy y Próximos", navController = navController)
-        is MatchesUiState.Error -> ErrorView()
-    }
-}
-
-@Composable
-fun ChampionsScreen(uiState: MatchesUiState, navController: NavHostController) {
-    when (uiState) {
-        is MatchesUiState.Loading -> LoadingView()
-        is MatchesUiState.Success -> MatchList(matches = uiState.matches, title = "Champions League", navController = navController)
-        is MatchesUiState.Error -> ErrorView()
     }
 }
 
@@ -352,6 +342,23 @@ fun ProfileScreen(
             )
         }
         item { PermissionsSection(navController = navController) }
+
+
+        item {
+            Column {
+                Text(text = "Servicios de Comunidad", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                Spacer(modifier = Modifier.height(8.dp))
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    ListItem(
+                        headlineContent = { Text("Enviar Comentarios") },
+                        leadingContent = { Icon(Icons.Default.ChatBubble, contentDescription = "Comentarios") },
+                        trailingContent = { Icon(Icons.Default.KeyboardArrowRight, contentDescription = null) },
+                        modifier = Modifier.clickable { navController.navigate("feedback") } // Ruta a la pantalla de Feedback
+                    )
+                }
+            }
+        }
+
     }
 }
 
@@ -389,7 +396,8 @@ fun MatchList(matches: List<Match>, modifier: Modifier = Modifier, title: String
                     textAlign = TextAlign.Center
                 )
             }
-        } else {
+        }
+        else {
             LazyColumn(modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 8.dp)) {
@@ -559,9 +567,10 @@ fun ErrorView(modifier: Modifier = Modifier) {
     }
 }
 
+// parámetro modifier
 @Composable
-fun PlaceholderScreen(screenTitle: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun PlaceholderScreen(screenTitle: String, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = "Pantalla de $screenTitle", fontSize = 24.sp, fontWeight = FontWeight.Bold)
     }
 }

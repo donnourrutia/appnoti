@@ -52,7 +52,6 @@ android {
     }
 }
 
-
 dependencies {
     // Definición de versiones
     val room_version = "2.6.1"
@@ -94,10 +93,8 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
-    // ================== ¡NUEVA LÍNEA! ==================
     // Librería para manejar permisos fácilmente en Compose
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-
 
 
     // Soporte para java.time en APIs < 26
@@ -112,8 +109,12 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 
-    // Preferencias (DataStore) - ¡ESTAS LÍNEAS FALTABAN!
+
+    // Preferencias (DataStore)
     val datastore_version = "1.1.1"
     implementation("androidx.datastore:datastore-preferences:$datastore_version")
 }

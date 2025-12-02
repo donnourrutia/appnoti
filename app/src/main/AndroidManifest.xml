@@ -3,9 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!--
-      AQUÍ ESTÁ LA LÍNEA CLAVE
-      Esta línea le da permiso a tu app para usar Internet.
-      Debe estar DENTRO de <manifest> pero FUERA de <application>.
+     Permisos.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -25,6 +23,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NotiGoal"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"

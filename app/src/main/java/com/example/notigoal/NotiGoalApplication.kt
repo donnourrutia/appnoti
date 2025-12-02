@@ -24,12 +24,8 @@ class NotiGoalApplication : Application() {
         super.onCreate()
         container = DefaultAppContainer(this)
 
-        // --- Configuración de WorkManager --- //
-        // Programa el GoalCheckWorker para que se ejecute cada 15 minutos.
-        // Usamos ExistingPeriodicWorkPolicy.KEEP para que si ya hay un trabajo programado
-        // con este nombre, lo mantenga y no cree uno nuevo.
         val goalCheckRequest = PeriodicWorkRequestBuilder<GoalCheckWorker>(
-            15, TimeUnit.MINUTES // Ejecutar cada 15 minutos (ajusta según necesites)
+            15, TimeUnit.MINUTES // Ejecutar cada 15 minutos
         )
             .addTag("goal_check_worker_tag") // Un tag para identificar nuestro Worker
             .build()

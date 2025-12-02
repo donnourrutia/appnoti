@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import android.util.Patterns // Para validar el formato del email
-import com.example.notigoal.data.preferences.UserPreferencesRepository // Nueva importación
+import android.util.Patterns
+import com.example.notigoal.data.preferences.UserPreferencesRepository
 
 class EditProfileViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -87,9 +87,9 @@ class EditProfileViewModel(
 
     // Estado de la UI para el formulario de edicion de perfil
     data class EditProfileUiState(
-        val name: String = "", // Ahora se inicializaran desde el repositorio
-        val email: String = "", // Ahora se inicializaran desde el repositorio
-        val biography: String = "", // Ahora se inicializaran desde el repositorio
+        val name: String = "",
+        val email: String = "",
+        val biography: String = "",
         val isNameError: Boolean = false,
         val isEmailError: Boolean = false,
         val isFormValid: Boolean = false,

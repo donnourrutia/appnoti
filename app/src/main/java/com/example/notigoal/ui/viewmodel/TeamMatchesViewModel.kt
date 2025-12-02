@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-// Reutilizamos el mismo estado de UI que ya tenemos para los partidos
 class TeamMatchesViewModel(
     private val favoriteTeamsRepository: FavoriteTeamsRepository,
     private val userPreferencesRepository: UserPreferencesRepository // Inyectamos UserPreferencesRepository
@@ -42,7 +41,6 @@ class TeamMatchesViewModel(
         // Pedimos los partidos del Real Madrid (ID 86) al iniciar
         fetchTeamMatches(86)
 
-        // Ya no necesitamos un collect aquí, ya que userProfile está usando stateIn
     }
 
     private fun fetchTeamMatches(teamId: Int) {

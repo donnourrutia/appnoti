@@ -37,7 +37,7 @@ object NotificationHelper {
         awayTeamName: String,
         score: String,
         minute: String?,
-        matchId: Int = -1 // Añadir matchId para navegación futura
+        matchId: Int = -1
     ) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -46,7 +46,6 @@ object NotificationHelper {
         val contentText = "¡Marcador: $score$minuteText!"
 
         // Crear un Intent para abrir la MainActivity cuando se toque la notificación
-        // Aquí podríamos añadir extras para navegar a una pantalla específica del partido
         val intent = Intent(context, MainActivity::class.java).apply {
             // Si matchId es válido, lo añadimos para la navegación profunda
             if (matchId != -1) {
@@ -59,7 +58,7 @@ object NotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Asegúrate de que este sea tu icono
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(contentText)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

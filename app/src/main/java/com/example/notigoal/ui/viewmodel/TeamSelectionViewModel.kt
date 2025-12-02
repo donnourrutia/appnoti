@@ -70,15 +70,10 @@ class TeamSelectionViewModel(
                                 allFetchedTeams.addAll(teams)
                             }
                         } else {
-                            // Log para ver qué ligas fallan, pero no cambiar el estado global a Error aún
-                            // Log.e("TeamSelectionViewModel", "Error fetching teams for competition $id: ${response.code()}")
                         }
                     } catch (e: IOException) {
-                        // Log de error de red por competición
-                        // Log.e("TeamSelectionViewModel", "Network error fetching teams for competition $id: ${e.message}")
+
                     } catch (e: retrofit2.HttpException) {
-                        // Log de error HTTP por competición
-                        // Log.e("TeamSelectionViewModel", "HTTP error fetching teams for competition $id: ${e.message}")
                     }
                 }
 

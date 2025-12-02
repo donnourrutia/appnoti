@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitInstance {
 
     // --- API KEY (ACTUALIZADA) ---
-    private const val API_KEY = "37cdd5b0d4a94d20a4d444c047fafdd7"
+    private const val API_KEY = "1cd2bdcfa48348f5909f0ea5e8010e03"
 
     private const val BASE_URL = "https://api.football-data.org/"
 
