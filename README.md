@@ -71,3 +71,7 @@ Lógica de Plan Gratuito: El MatchesViewModel lanza 8 llamadas de red en paralel
 <img width="393" height="881" alt="image" src="https://github.com/user-attachments/assets/d7e72c3f-ac2b-4c8b-a312-6467a6d9397e" />
 
 <img width="403" height="889" alt="image" src="https://github.com/user-attachments/assets/cdfb5f7c-7a1e-49d7-b7f5-e4dabf7bb602" />
+
+Se agregaron nuevos apartados para mensajes de la comunidad, se implementaron pruebas de Testing, nueva API propia, utilización de Spring Boot.
+<img width="393" height="884" alt="image" src="https://github.com/user-attachments/assets/0853449e-0ca5-4503-8b2a-499e1bf99210" />
+
