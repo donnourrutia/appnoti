@@ -75,3 +75,12 @@ Lógica de Plan Gratuito: El MatchesViewModel lanza 8 llamadas de red en paralel
 Se agregaron nuevos apartados para mensajes de la comunidad, se implementaron pruebas de Testing, nueva API propia, utilización de Spring Boot.
 <img width="393" height="884" alt="image" src="https://github.com/user-attachments/assets/0853449e-0ca5-4503-8b2a-499e1bf99210" />
 
+aca podemos ver algunos de los get de la API externa que utilizamos:
+<img width="550" height="791" alt="image" src="https://github.com/user-attachments/assets/2e61d9bd-b645-4ebc-b697-8aa5b6fa34bf" />
+y unos de la nuestra propia:
+<img width="597" height="249" alt="image" src="https://github.com/user-attachments/assets/f6e5976c-d6b3-47fe-b8be-26c472856a6f" />
+para levantar el servidor debemos ejecutar la linea del archivo demo: 
+<img width="534" height="327" alt="image" src="https://github.com/user-attachments/assets/c6bc1f6f-282c-426c-a3e4-473f3f5c9ca8" />
+
+<img width="95" height="85" alt="Captura de pantalla 2025-12-05 164310" src="https://github.com/user-attachments/assets/2bc5fb6a-c700-452a-b99d-6a6030e3b9b6" />
+<img width="925" height="706" alt="firma apk" src="https://github.com/user-attachments/assets/54d5434c-e098-4608-bc50-016fa631becb" />
