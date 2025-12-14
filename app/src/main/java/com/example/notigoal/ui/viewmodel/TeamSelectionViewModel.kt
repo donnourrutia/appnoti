@@ -7,11 +7,10 @@ import com.example.notigoal.data.model.Team
 import com.example.notigoal.data.remote.RetrofitInstance
 import com.example.notigoal.data.repository.FavoriteTeamsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -22,26 +21,26 @@ sealed interface TeamSelectionUiState {
     object Loading : TeamSelectionUiState
 }
 
-class TeamSelectionViewModel(
+//open a la clase para poder heredarla en el test
+open class TeamSelectionViewModel(
     private val favoriteTeamsRepository: FavoriteTeamsRepository
 ) : ViewModel() {
 
     private val _teams = MutableStateFlow<List<Team>>(emptyList())
     private val _uiState = MutableStateFlow<TeamSelectionUiState>(TeamSelectionUiState.Loading)
-    val uiState: StateFlow<TeamSelectionUiState> = _uiState
+
+    open val uiState: StateFlow<TeamSelectionUiState> = _uiState
 
     init {
         fetchTeams()
 
         // Combina la lista de todos los equipos y los IDs de los equipos favoritos
-        // para crear el estado final de la UI.
         _teams.combine(favoriteTeamsRepository.getAllFavoriteTeams()) {
                 teams, favoriteTeams ->
             val favoriteTeamIds = favoriteTeams.map { it.id }.toSet()
             if (teams.isNotEmpty()) {
                 TeamSelectionUiState.Success(teams, favoriteTeamIds)
             } else if (_uiState.value is TeamSelectionUiState.Error) {
-                // Mantener el estado de error si ya lo teníamos
                 TeamSelectionUiState.Error
             } else {
                 TeamSelectionUiState.Loading
@@ -57,9 +56,9 @@ class TeamSelectionViewModel(
 
     private fun fetchTeams() {
         viewModelScope.launch {
-            _uiState.value = TeamSelectionUiState.Loading // Asegura que el estado de carga se active
+            _uiState.value = TeamSelectionUiState.Loading
             try {
-                val competitionIds = listOf("PD", "PL", "BL1", "SA", "FL1", "CL") // Códigos de ligas populares
+                val competitionIds = listOf("PD", "PL", "BL1", "SA", "FL1", "CL")
                 val allFetchedTeams = mutableListOf<Team>()
 
                 for (id in competitionIds) {
@@ -69,24 +68,21 @@ class TeamSelectionViewModel(
                             response.body()?.teams?.let { teams ->
                                 allFetchedTeams.addAll(teams)
                             }
-                        } else {
                         }
                     } catch (e: IOException) {
-
+                        // Manejo de error de red
                     } catch (e: retrofit2.HttpException) {
+                        // Manejo de error http
                     }
                 }
 
                 if (allFetchedTeams.isNotEmpty()) {
-                    // Filtrar duplicados por ID de equipo
                     _teams.value = allFetchedTeams.distinctBy { it.id }
                 } else {
-                    // Si no se pudo cargar ningún equipo de ninguna liga
                     _uiState.value = TeamSelectionUiState.Error
                 }
 
             } catch (e: Exception) {
-                // Captura cualquier otra excepción inesperada
                 _uiState.value = TeamSelectionUiState.Error
             }
         }

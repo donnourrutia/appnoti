@@ -27,10 +27,32 @@ import com.example.notigoal.di.AppViewModelProvider
 import com.example.notigoal.ui.viewmodel.TeamSelectionUiState
 import com.example.notigoal.ui.viewmodel.TeamSelectionViewModel
 
+// 1. VERSIÓN PÚBLICA (Para tu Navegación / App Real)
+// Esta mantiene la firma original para no romper tu NavHost
+@Composable
+fun TeamSelectionScreen(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    // Aquí instanciamos el ViewModel REAL y definimos la navegación REAL
+    TeamSelectionScreen(
+        viewModel = viewModel(factory = AppViewModelProvider.Factory),
+        onBackClick = { navController.navigateUp() },
+        onTeamSelected = { /* Aquí podrías navegar al detalle si quisieras */ },
+        modifier = modifier
+    )
+}
+
+// 2. VERSIÓN TESTEABLE (La que usa tu Test)
+// Esta recibe el ViewModel y las acciones como parámetros.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamSelectionScreen(navController: NavController, modifier: Modifier = Modifier) {
-    val viewModel: TeamSelectionViewModel = viewModel(factory = AppViewModelProvider.Factory)
+fun TeamSelectionScreen(
+    viewModel: TeamSelectionViewModel, // Inyectado
+    onBackClick: () -> Unit,           // Callback en lugar de NavController
+    onTeamSelected: (Team) -> Unit,    // Callback
+    modifier: Modifier = Modifier
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -38,7 +60,7 @@ fun TeamSelectionScreen(navController: NavController, modifier: Modifier = Modif
             TopAppBar(
                 title = { Text("Seleccionar Equipo Favorito") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = onBackClick) { // Usamos el callback
                         Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
                     }
                 },
@@ -102,7 +124,7 @@ fun TeamItem(team: Team, isFavorite: Boolean, onToggleFavorite: (Boolean) -> Uni
                 contentDescription = "Logo ${team.name}",
                 modifier = Modifier.size(40.dp),
                 loading = { CircularProgressIndicator(modifier = Modifier.size(20.dp)) },
-                error = { Text("", modifier = Modifier.size(40.dp)) } // Texto vacío o un icono predeterminado
+                error = { Text("", modifier = Modifier.size(40.dp)) }
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(text = team.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
@@ -116,5 +138,5 @@ fun TeamItem(team: Team, isFavorite: Boolean, onToggleFavorite: (Boolean) -> Uni
             )
         }
     }
-    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }

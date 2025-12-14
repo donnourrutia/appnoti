@@ -55,6 +55,7 @@ import com.example.notigoal.ui.navigation.Screen
 import com.example.notigoal.ui.screens.EditProfileScreen
 import com.example.notigoal.ui.screens.TeamSelectionScreen
 import com.example.notigoal.ui.screens.FeedbackScreen
+import com.example.notigoal.ui.screens.LoginScreen // IMPORTANTE: Importamos la pantalla de Login
 import com.example.notigoal.ui.theme.LiveGreen
 import com.example.notigoal.ui.theme.NotiGoalTheme
 import com.example.notigoal.ui.viewmodel.*
@@ -87,8 +88,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppScreen(initialMatchId: Int = -1) {
     val navController = rememberNavController()
-    // Añadir Feedback a la lista de pantallas (aunque no está en el nav bar)
+
+    // Lista de pantallas para la navegación
     val items = listOf(Screen.Partidos, Screen.Champions, Screen.Perfil, Screen.TeamSelection, Screen.EditProfile)
+
+    // Obtenemos la ruta actual para saber si ocultar la barra inferior
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     val sharedMatchesViewModel: MatchesViewModel = viewModel(factory = AppViewModelProvider.Factory)
 
@@ -106,35 +112,47 @@ fun AppScreen(initialMatchId: Int = -1) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                items.filter { it.icon != null }.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon!!, contentDescription = screen.label) },
-                        label = { Text(screen.label) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            // LÓGICA DE VISIBILIDAD: Solo mostramos la barra si NO estamos en Login
+            // y si la pantalla actual tiene un icono definido en tu clase Screen
+            if (currentRoute != "login") {
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+                    val currentDestination = navBackStackEntry?.destination
+
+                    // Solo mostramos items que tengan icono (Partidos, Champions, Perfil)
+                    items.filter { it.icon != null }.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon!!, contentDescription = screen.label) },
+                            label = { Text(screen.label) },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
     ) { innerPadding ->
-        NavHost(navController, startDestination = Screen.Partidos.route, Modifier.padding(innerPadding)) {
+        // CAMBIO IMPORTANTE: startDestination es "login" ahora
+        NavHost(navController, startDestination = "login", Modifier.padding(innerPadding)) {
+
+            // 1. Pantalla de Login (Nueva entrada de la app)
+            composable("login") {
+                LoginScreen(navController = navController)
+            }
+
             composable(Screen.Partidos.route) {
                 // Usamos el ViewModel compartido
                 val uiState by sharedMatchesViewModel.uiState.collectAsState()
