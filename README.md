@@ -82,4 +82,5 @@ El proyecto está configurado para la entrega continua y generación de ejecutab
 
 | Login / Roles | Selección de Equipos | Feed de Partidos |
 |:---:|:---:|:---:|
-| <img width="250" src="https://github.com/user-attachments/assets/ab9af20e-f83f-4c68-81c8-bc2a70467494" /> | <img width="250" src="https://github.com/user-attachments/assets/d7e72c3f-ac2b-4c8b-a312-6467a6d9397e" /> | <img width="250" src="https://github.com/user-attachments/assets/cdfb5f7c-7a1e-49d7-b7f5-e4dabf7bb602" /> |
+| <img width="394" height="881" alt="image" src="https://github.com/user-attachments/assets/e716c5df-2ed4-4b53-a465-9a56067a85c9" />
+ | <img width="250" src="https://github.com/user-attachments/assets/d7e72c3f-ac2b-4c8b-a312-6467a6d9397e" /> | <img width="250" src="https://github.com/user-attachments/assets/cdfb5f7c-7a1e-49d7-b7f5-e4dabf7bb602" /> |
